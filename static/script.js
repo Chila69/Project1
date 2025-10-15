@@ -1,4 +1,4 @@
- // ===== API helpers =====
+// ===== API helpers =====
 async function apiGetProducts() {
   const res = await fetch("/api/products");
   return await res.json();
@@ -9,11 +9,15 @@ async function apiDeleteProduct(id) {
 }
 
 async function apiCreateProduct(payload) {
-  await fetch("/api/products", {
+  const res = await fetch("/api/products", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload),
   });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    alert("Add failed: " + (err.error || res.statusText));
+  }
 }
 
 async function apiUpdateProduct(id, payload) {
@@ -38,7 +42,18 @@ async function loadProducts() {
     const li = document.createElement("li");
 
     const span = document.createElement("span");
-    span.textContent = `${p.id}. ${p.name} (${p.category}) — $${p.price} [${p.status}]`;
+    const categoryName = p.category ? p.category.name : "—";
+    span.innerHTML = `
+    <div class="product-info">
+      <div class="product-name">${p.name}</div>
+      <div class="product-meta">
+        <span class="product-price">$${p.price}</span>
+        <span class="product-status ${p.status === "available" ? "status-ok" : "status-bad"}">${p.status}</span>
+        <span class="product-category">${categoryName}</span>
+      </div>
+    </div>
+  `;
+  
 
     const actions = document.createElement("div");
     actions.style.display = "flex";
@@ -78,7 +93,6 @@ function switchToEdit(li, product) {
   const form = document.createElement("div");
   form.classList.add("edit-form");
 
-  // заголовок
   const title = document.createElement("h4");
   title.textContent = `Edit Product #${product.id}`;
   form.appendChild(title);
@@ -101,9 +115,8 @@ function switchToEdit(li, product) {
   }
 
   const nameInput = addField("Name:", product.name);
-  const categoryInput = addField("Category:", product.category);
   const priceInput = addField("Price:", product.price, "number");
-  const statusInput = addField("Status:", product.status || "available");
+  const statusInput = addField("Status:", product.status);
 
   const btns = document.createElement("div");
   btns.classList.add("edit-buttons");
@@ -114,7 +127,6 @@ function switchToEdit(li, product) {
   saveBtn.onclick = async () => {
     const payload = {
       name: nameInput.value.trim(),
-      category: categoryInput.value.trim(),
       price: Number(priceInput.value),
       status: statusInput.value.trim(),
     };
@@ -134,54 +146,54 @@ function switchToEdit(li, product) {
   li.appendChild(form);
 }
 
-// форма добавления
+// ===== Load categories =====
+async function loadCategories() {
+  const res = await fetch("/api/categories");
+  if (!res.ok) {
+    alert("Failed to load categories");
+    return;
+  }
+  const categories = await res.json();
+  const select = document.getElementById("category-select");
+  select.innerHTML = '<option value="">— select category —</option>';
+  categories.forEach((cat) => {
+    const option = document.createElement("option");
+    option.value = cat.id;
+    option.textContent = cat.name;
+    select.appendChild(option);
+  });
+}
+
+// ===== Add product =====
 async function addProduct() {
   const name = document.getElementById("name").value.trim();
-  const category = document.getElementById("category").value.trim();
-  const price = document.getElementById("price").value;
+  const price = parseFloat(document.getElementById("price").value);
+  const status = document.getElementById("status").value;
+  const categoryId = document.getElementById("category-select").value;
 
-  if (!name || !category || !price) {
-    alert("Please fill in all fields");
+  if (!name || !price) {
+    alert("Please fill in name and price");
     return;
   }
 
-  await apiCreateProduct({ name, category, price: Number(price) });
+  const payload = {
+    name,
+    price,
+    status,
+    category_id: categoryId ? parseInt(categoryId) : null,
+  };
+
+  await apiCreateProduct(payload);
+  await loadProducts();
+
+  // очистка формы
   document.getElementById("name").value = "";
-  document.getElementById("category").value = "";
   document.getElementById("price").value = "";
-  loadProducts();
+  document.getElementById("category-select").value = "";
 }
-async function loadCategories() {
-  const res = await fetch('/api/categories');
-  const categories = await res.json();
-  const select = document.getElementById('category-select');
-  select.innerHTML = ''; // очистить список
-  categories.forEach(cat => {
-      const option = document.createElement('option');
-      option.value = cat.id;
-      option.textContent = cat.name;
-      select.appendChild(option);
-  });
-}
-document.addEventListener('DOMContentLoaded', () => {
-  loadCategories();
-  loadProducts();
+
+// ===== Инициализация =====
+document.addEventListener("DOMContentLoaded", async () => {
+  await loadCategories();
+  await loadProducts();
 });
-const categoryId = document.getElementById('category-select').value;
-
-const product = {
-    name: nameInput.value,
-    price: parseFloat(priceInput.value),
-    status: statusInput.value,
-    category_id: categoryId ? parseInt(categoryId) : null
-};
-
-await fetch('/api/products', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(product)
-});
-
-
-// init
-loadProducts();
