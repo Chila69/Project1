@@ -35,46 +35,86 @@ def get_product(id):
 @app.route('/api/products', methods=['POST'])
 def add_product():
     data = request.get_json() or {}
-    if not data.get("name") or data.get("price") is None:
-        return jsonify({"error": "Missing required fields: name, price"}), 400
 
+    # 🔍 Walidacja: wymagane pola
+    if not data.get("name") or len(data["name"].strip()) < 2:
+        return jsonify({"error": "Nazwa produktu jest wymagana i musi mieć co najmniej 2 znaki"}), 400
+
+    if data.get("price") is None:
+        return jsonify({"error": "Pole 'price' jest wymagane"}), 400
+
+    try:
+        price = float(data["price"])
+    except (TypeError, ValueError):
+        return jsonify({"error": "Cena musi być liczbą"}), 400
+
+    if price <= 0:
+        return jsonify({"error": "Cena musi być dodatnia"}), 400
+
+    # 🔍 Sprawdzenie kategorii (jeśli podana)
     category_id = data.get("category_id")
     if category_id:
         cat = Category.query.get(category_id)
         if not cat:
-            return jsonify({"error": "Category not found"}), 400
+            return jsonify({"error": "Podana kategoria nie istnieje"}), 400
 
+    # ✅ Tworzenie produktu
     p = Product(
-        name=data["name"],
-        price=float(data["price"]),
+        name=data["name"].strip(),
+        price=price,
         status=data.get("status", "available"),
         category_id=category_id
     )
+
     db.session.add(p)
     db.session.commit()
+
     return jsonify(p.to_dict()), 201
+
 
 @app.route('/api/products/<int:id>', methods=['PUT'])
 def update_product(id):
     p = Product.query.get(id)
     if not p:
-        return jsonify({"error": "Product not found"}), 404
+        return jsonify({"error": "Produkt nie znaleziony"}), 404
 
     data = request.get_json() or {}
-    if "name" in data: p.name = data["name"]
-    if "price" in data: p.price = float(data["price"])
-    if "status" in data: p.status = data["status"]
+
+    # 🔍 Walidacja: nazwa
+    if "name" in data:
+        if not data["name"] or len(data["name"].strip()) < 2:
+            return jsonify({"error": "Nazwa produktu musi mieć co najmniej 2 znaki"}), 400
+        p.name = data["name"].strip()
+
+    # 🔍 Walidacja: cena
+    if "price" in data:
+        try:
+            price = float(data["price"])
+        except (TypeError, ValueError):
+            return jsonify({"error": "Cena musi być liczbą"}), 400
+
+        if price <= 0:
+            return jsonify({"error": "Cena musi być dodatnia"}), 400
+
+        p.price = price
+
+    # 🔍 Status
+    if "status" in data:
+        p.status = data["status"]
+
+    # 🔍 Walidacja: kategoria
     if "category_id" in data:
         if data["category_id"] is None:
             p.category_id = None
         else:
             cat = Category.query.get(data["category_id"])
             if not cat:
-                return jsonify({"error": "Category not found"}), 400
+                return jsonify({"error": "Podana kategoria nie istnieje"}), 400
             p.category_id = data["category_id"]
 
     db.session.commit()
-    return jsonify(p.to_dict())
+    return jsonify(p.to_dict()), 200
+
 
 @app.route('/api/products/<int:id>', methods=['DELETE'])
 def delete_product(id):
