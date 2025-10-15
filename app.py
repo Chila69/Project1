@@ -269,5 +269,24 @@ def delete_order(id):
     db.session.commit()
     return jsonify({"message": "Order deleted"})
 
+@app.before_first_request
+def create_default_categories():
+    db.create_all()
+    if Category.query.count() == 0:
+        default_categories = [
+            Category(name="Elektronika"),
+            Category(name="Jedzenie"),
+            Category(name="Ubrania"),
+            Category(name="Inne")
+        ]
+        db.session.add_all(default_categories)
+        db.session.commit()
+        print("Dodano domyślne kategorie do bazy danych")
+
+@app.route('/api/categories', methods=['GET'])
+def get_categories():
+    categories = Category.query.all()
+    return jsonify([{"id": c.id, "name": c.name} for c in categories])
+
 if __name__ == '__main__':
     app.run(debug=True, port=5001)  # если ты уже менял порт — оставь свой

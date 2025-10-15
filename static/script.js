@@ -151,6 +151,37 @@ async function addProduct() {
   document.getElementById("price").value = "";
   loadProducts();
 }
+async function loadCategories() {
+  const res = await fetch('/api/categories');
+  const categories = await res.json();
+  const select = document.getElementById('category-select');
+  select.innerHTML = ''; // очистить список
+  categories.forEach(cat => {
+      const option = document.createElement('option');
+      option.value = cat.id;
+      option.textContent = cat.name;
+      select.appendChild(option);
+  });
+}
+document.addEventListener('DOMContentLoaded', () => {
+  loadCategories();
+  loadProducts();
+});
+const categoryId = document.getElementById('category-select').value;
+
+const product = {
+    name: nameInput.value,
+    price: parseFloat(priceInput.value),
+    status: statusInput.value,
+    category_id: categoryId ? parseInt(categoryId) : null
+};
+
+await fetch('/api/products', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(product)
+});
+
 
 // init
 loadProducts();
