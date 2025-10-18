@@ -8,7 +8,7 @@ def create_app():
     CORS(app)
 
     app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///products.db'
-    app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+    app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False #Забирает лишнюю память
 
     db.init_app(app)
     Migrate(app, db)
