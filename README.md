@@ -156,7 +156,7 @@ Aplikacja będzie dostępna pod adresem:
 
 ![Podgląd aplikacji](static/screenshot.png)
 
-## nstrukcja dla prowadzącego
+## Instrukcja dla prowadzącego
 
 1. Uruchomić aplikację lokalnie (lub w labie).
 2. Otworzyć stronę główną `/`.
@@ -164,5 +164,3 @@ Aplikacja będzie dostępna pod adresem:
 4. Sprawdzić operacje CRUD (edycja, usunięcie).
 5. Endpointy API można testować w Postmanie.
 
-
-Хочешь, я сразу сделаю тебе PDF-версию этого README (для загрузки или сдачи в Moodle)?
