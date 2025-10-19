@@ -34,6 +34,10 @@ class Product(db.Model):
     status = db.Column(db.String(20), default="available")
     category_id = db.Column(db.Integer, db.ForeignKey("categories.id"), nullable=True)
 
+    # 🔹 Новые поля
+    description = db.Column(db.String(255))
+    supplier = db.Column(db.String(100))
+
     category = db.relationship("Category", back_populates="products")
     orders = db.relationship("Order", back_populates="product", cascade="all,delete", lazy=True)
 
@@ -43,6 +47,8 @@ class Product(db.Model):
             "name": self.name,
             "price": self.price,
             "status": self.status,
+            "description": self.description,
+            "supplier": self.supplier,
             "category": self.category.to_dict() if self.category else None,
             "category_id": self.category_id,
         }
@@ -69,3 +75,4 @@ class Order(db.Model):
             "quantity": self.quantity,
             "order_date": self.order_date.isoformat()
         }
+

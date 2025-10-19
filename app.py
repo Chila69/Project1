@@ -66,7 +66,9 @@ def create_app():
             name=data["name"].strip(),
             price=price,
             status=data.get("status", "available"),
-            category_id=category_id
+            category_id=category_id,
+            description=data.get("description"),
+            supplier=data.get("supplier")
         )
         db.session.add(p)
         db.session.commit()
@@ -103,6 +105,12 @@ def create_app():
                 if not Category.query.get(data["category_id"]):
                     return jsonify({"error": "Podana kategoria nie istnieje"}), 400
                 p.category_id = data["category_id"]
+
+        if "description" in data:
+            p.description = data["description"]
+
+        if "supplier" in data:
+            p.supplier = data["supplier"]
 
         db.session.commit()
         return jsonify(p.to_dict()), 200
