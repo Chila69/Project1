@@ -23,7 +23,7 @@ Responsywny interfejs użytkownika (HTML + CSS + JavaScript)
 Automatyczne tworzenie domyślnych kategorii przy starcie aplikacji
 
 ## Struktura projektu
-
+```
 Project_CRUD/
 │
 ├── app.py               # główny plik Flask z trasami i API
@@ -41,7 +41,7 @@ Project_CRUD/
 │
 ├── README.md
 └── requirements.txt
-
+```
 ## Technologie
 
 * **Python 3.11+**
