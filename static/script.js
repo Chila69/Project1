@@ -44,15 +44,17 @@ async function loadProducts() {
     const span = document.createElement("span");
     const categoryName = p.category ? p.category.name : "—";
     span.innerHTML = `
-    <div class="product-info">
-      <div class="product-name">${p.name}</div>
-      <div class="product-meta">
-        <span class="product-price">$${p.price}</span>
-        <span class="product-status ${p.status === "available" ? "status-ok" : "status-bad"}">${p.status}</span>
-        <span class="product-category">${categoryName}</span>
+      <div class="product-info">
+        <div class="product-name">${p.name}</div>
+        <div class="product-meta">
+          <span class="product-price">$${p.price}</span>
+          <span class="product-status ${p.status === "available" ? "status-ok" : "status-bad"}">${p.status}</span>
+          <span class="product-category">${categoryName}</span>
+        </div>
+        <div class="product-description">${p.description || "No description"}</div>
+        <div class="product-supplier">Supplier: ${p.supplier || "—"}</div>
       </div>
-    </div>
-  `;
+    `;
   
 
     const actions = document.createElement("div");
@@ -106,7 +108,7 @@ function switchToEdit(li, product) {
     label.textContent = labelText;
     const input = document.createElement("input");
     input.type = type;
-    input.value = defaultValue;
+    input.value = defaultValue ?? "";
 
     group.appendChild(label);
     group.appendChild(input);
@@ -114,9 +116,12 @@ function switchToEdit(li, product) {
     return input;
   }
 
+  // поля для редактирования
   const nameInput = addField("Name:", product.name);
   const priceInput = addField("Price:", product.price, "number");
   const statusInput = addField("Status:", product.status);
+  const descriptionInput = addField("Description:", product.description);
+  const supplierInput = addField("Supplier:", product.supplier);
 
   const btns = document.createElement("div");
   btns.classList.add("edit-buttons");
@@ -129,6 +134,8 @@ function switchToEdit(li, product) {
       name: nameInput.value.trim(),
       price: Number(priceInput.value),
       status: statusInput.value.trim(),
+      description: descriptionInput.value.trim(),
+      supplier: supplierInput.value.trim(),
     };
     await apiUpdateProduct(product.id, payload);
     loadProducts();
@@ -170,6 +177,8 @@ async function addProduct() {
   const price = parseFloat(document.getElementById("price").value);
   const status = document.getElementById("status").value;
   const categoryId = document.getElementById("category-select").value;
+  const description = document.getElementById("description").value.trim();
+  const supplier = document.getElementById("supplier").value.trim();
 
   if (!name || !price) {
     alert("Please fill in name and price");
@@ -180,20 +189,25 @@ async function addProduct() {
     name,
     price,
     status,
+    description,
+    supplier,
     category_id: categoryId ? parseInt(categoryId) : null,
   };
 
   await apiCreateProduct(payload);
   await loadProducts();
 
-  // очистка формы
+  // Очистка формы
   document.getElementById("name").value = "";
   document.getElementById("price").value = "";
+  document.getElementById("description").value = "";
+  document.getElementById("supplier").value = "";
   document.getElementById("category-select").value = "";
 }
 
-// ===== Инициализация =====
+// ===== Init on page load =====
 document.addEventListener("DOMContentLoaded", async () => {
   await loadCategories();
   await loadProducts();
 });
+

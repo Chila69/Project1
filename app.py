@@ -66,7 +66,9 @@ def create_app():
             name=data["name"].strip(),
             price=price,
             status=data.get("status", "available"),
-            category_id=category_id
+            category_id=category_id,
+            description=data.get("description"),
+            supplier=data.get("supplier")
         )
         db.session.add(p)
         db.session.commit()
@@ -103,6 +105,12 @@ def create_app():
                 if not Category.query.get(data["category_id"]):
                     return jsonify({"error": "Podana kategoria nie istnieje"}), 400
                 p.category_id = data["category_id"]
+
+        if "description" in data:
+            p.description = data["description"]
+
+        if "supplier" in data:
+            p.supplier = data["supplier"]
 
         db.session.commit()
         return jsonify(p.to_dict()), 200
@@ -263,7 +271,25 @@ def create_app():
 
     return app
 
+
 app = create_app()
+
+def seed_categories():
+    with app.app_context():
+        db.create_all()
+        if Category.query.count() == 0:
+            db.session.add_all([
+                Category(name="Elektronika"),
+                Category(name="Jedzenie"),
+                Category(name="Ubrania"),
+                Category(name="Inne")
+            ])
+            db.session.commit()
+            print("✅ Default categories added!")
+        else:
+            print("ℹ️ Categories already exist.")
+
+seed_categories()
 
 if __name__ == '__main__':
     app.run(debug=True, port=5001)
