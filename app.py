@@ -271,7 +271,25 @@ def create_app():
 
     return app
 
+
 app = create_app()
+
+def seed_categories():
+    with app.app_context():
+        db.create_all()
+        if Category.query.count() == 0:
+            db.session.add_all([
+                Category(name="Elektronika"),
+                Category(name="Jedzenie"),
+                Category(name="Ubrania"),
+                Category(name="Inne")
+            ])
+            db.session.commit()
+            print("✅ Default categories added!")
+        else:
+            print("ℹ️ Categories already exist.")
+
+seed_categories()
 
 if __name__ == '__main__':
     app.run(debug=True, port=5001)

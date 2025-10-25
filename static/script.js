@@ -108,7 +108,7 @@ function switchToEdit(li, product) {
     label.textContent = labelText;
     const input = document.createElement("input");
     input.type = type;
-    input.value = defaultValue;
+    input.value = defaultValue ?? "";
 
     group.appendChild(label);
     group.appendChild(input);
@@ -116,9 +116,12 @@ function switchToEdit(li, product) {
     return input;
   }
 
+  // поля для редактирования
   const nameInput = addField("Name:", product.name);
   const priceInput = addField("Price:", product.price, "number");
   const statusInput = addField("Status:", product.status);
+  const descriptionInput = addField("Description:", product.description);
+  const supplierInput = addField("Supplier:", product.supplier);
 
   const btns = document.createElement("div");
   btns.classList.add("edit-buttons");
@@ -131,6 +134,8 @@ function switchToEdit(li, product) {
       name: nameInput.value.trim(),
       price: Number(priceInput.value),
       status: statusInput.value.trim(),
+      description: descriptionInput.value.trim(),
+      supplier: supplierInput.value.trim(),
     };
     await apiUpdateProduct(product.id, payload);
     loadProducts();
@@ -199,4 +204,10 @@ async function addProduct() {
   document.getElementById("supplier").value = "";
   document.getElementById("category-select").value = "";
 }
+
+// ===== Init on page load =====
+document.addEventListener("DOMContentLoaded", async () => {
+  await loadCategories();
+  await loadProducts();
+});
 
