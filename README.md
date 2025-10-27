@@ -71,6 +71,8 @@ Project_CRUD/
 | price       | Float   | Cena                                   |
 | status      | String  | Status („available” lub „unavailable”) |
 | category_id | Integer | Klucz obcy (Category)                  |
+W projekcie zostały dodane dwa nowe pola w modelu Product —
+Description (opis produktu) oraz Supplier (dostawca).
 
 ### Customer
 
@@ -151,6 +153,11 @@ flask run
 
 Aplikacja będzie dostępna pod adresem:
 **(http://127.0.0.1:5001/)**
+
+## Uruchomienie projektu online
+Projekt został wdrożony online na platformie Render i jest dostępny publicznie pod adresem:
+-- https://project1-ib40.onrender.com
+
 
 ## Zrzut ekranu
 
