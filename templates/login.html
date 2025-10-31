@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <title>Logowanie – Project CRUD</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <style>
+    body {
+      background: linear-gradient(180deg, #e9eef6, #f5f8fc);
+      font-family: 'Inter', sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+    }
+
+    .form-container {
+      background: #fff;
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+      border-radius: 20px;
+      padding: 50px 45px;
+      width: 400px;
+      text-align: center;
+      animation: fadeIn 0.6s ease-in-out;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    h1 {
+      font-size: 28px;
+      color: #1e2a44;
+      margin-bottom: 35px;
+      font-weight: 700;
+    }
+
+    form {
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+      align-items: center;
+    }
+
+    input {
+      width: 100%;
+      max-width: 300px;
+      padding: 12px 14px;
+      border-radius: 10px;
+      border: 1px solid #d1d5db;
+      font-size: 15px;
+      transition: all 0.2s ease;
+      text-align: left;
+    }
+
+    input:focus {
+      border-color: #2563eb;
+      outline: none;
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2);
+    }
+
+    button {
+      width: 100%;
+      max-width: 300px;
+      background-color: #2563eb;
+      color: white;
+      padding: 12px;
+      border: none;
+      border-radius: 10px;
+      font-weight: 600;
+      cursor: pointer;
+      font-size: 16px;
+      transition: all 0.25s ease;
+      margin-top: 10px;
+    }
+
+    button:hover {
+      background-color: #1d4ed8;
+      transform: translateY(-2px);
+    }
+
+    p {
+      margin-top: 25px;
+      font-size: 14px;
+      color: #6b7280;
+    }
+
+    a {
+      color: #2563eb;
+      text-decoration: none;
+      font-weight: 500;
+    }
+
+    a:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+  <div class="form-container">
+    <h1>Logowanie</h1>
+
+    <form method="POST">
+      <input type="text" name="username" placeholder="Login" required>
+      <input type="password" name="password" placeholder="Hasło" required>
+      <button type="submit">Zaloguj się</button>
+    </form>
+
+    <p>Nie masz konta? <a href="{{ url_for('register') }}">Zarejestruj się</a></p>
+  </div>
+</body>
+</html>

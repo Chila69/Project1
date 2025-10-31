@@ -1,19 +1,30 @@
-from flask import Flask, jsonify, request, render_template, url_for
+from flask import Flask, jsonify, request, render_template, url_for, redirect, flash
 from flask_cors import CORS
-from models import db, Product, Category, Customer, Order
+from models import db, Product, Category, Customer, Order, User
 from flask_migrate import Migrate
+from flask_login import LoginManager, login_user, logout_user, login_required, current_user
 
+# ===================== ИНИЦИАЛИЗАЦИЯ ПРИЛОЖЕНИЯ ===================== #
 def create_app():
     app = Flask(__name__, static_folder='static', static_url_path='/static')
     CORS(app)
 
+    app.config['SECRET_KEY'] = 'supersecretkey'  # нужен для login flash
     app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///products.db'
-    app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False #Забирает лишнюю память
+    app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
     db.init_app(app)
     Migrate(app, db)
 
-    # --- Глобальная инициализация БД + сидирование (работает и с `flask run`) ---
+    # Flask-Login
+    login_manager = LoginManager(app)
+    login_manager.login_view = 'login'
+
+    @login_manager.user_loader
+    def load_user(user_id):
+        return User.query.get(int(user_id))
+
+    # --- Инициализация БД + дефолтные категории ---
     with app.app_context():
         db.create_all()
         if Category.query.count() == 0:
@@ -25,12 +36,9 @@ def create_app():
             ])
             db.session.commit()
 
-    # ---------- Pages ----------
-    @app.route('/')
-    def index():
-        return render_template('index.html')  # в шаблоне подключай CSS через url_for('static', filename='style.css')
+    # ===================== API ENDPOINTS ===================== #
 
-    # ---------- Products ----------
+    # ---------- PRODUCTS ----------
     @app.get('/api/products')
     def get_products():
         products = Product.query.all()
@@ -58,9 +66,8 @@ def create_app():
             return jsonify({"error": "Cena musi być dodatnia"}), 400
 
         category_id = data.get("category_id")
-        if category_id:
-            if not Category.query.get(category_id):
-                return jsonify({"error": "Podana kategoria nie istnieje"}), 400
+        if category_id and not Category.query.get(category_id):
+            return jsonify({"error": "Podana kategoria nie istnieje"}), 400
 
         p = Product(
             name=data["name"].strip(),
@@ -122,21 +129,13 @@ def create_app():
             return jsonify({"error": "Product not found"}), 404
         db.session.delete(p)
         db.session.commit()
-        # Можно 204 No Content, но оставим JSON:
         return jsonify({"message": "Product deleted"}), 200
 
-    # ---------- Categories ----------
+    # ---------- CATEGORIES ----------
     @app.get('/api/categories')
     def get_categories():
         cats = Category.query.all()
         return jsonify([c.to_dict() for c in cats])
-
-    @app.get('/api/categories/<int:id>')
-    def get_category(id):
-        c = Category.query.get(id)
-        if not c:
-            return jsonify({"error": "Category not found"}), 404
-        return jsonify(c.to_dict())
 
     @app.post('/api/categories')
     def create_category():
@@ -148,148 +147,81 @@ def create_app():
         db.session.commit()
         return jsonify(c.to_dict()), 201
 
-    @app.put('/api/categories/<int:id>')
-    def update_category(id):
-        c = Category.query.get(id)
-        if not c:
-            return jsonify({"error": "Category not found"}), 404
-        data = request.get_json() or {}
-        if "name" in data: c.name = data["name"]
-        if "description" in data: c.description = data["description"]
-        db.session.commit()
-        return jsonify(c.to_dict())
-
-    @app.delete('/api/categories/<int:id>')
-    def delete_category(id):
-        c = Category.query.get(id)
-        if not c:
-            return jsonify({"error": "Category not found"}), 404
-        db.session.delete(c)
-        db.session.commit()
-        return jsonify({"message": "Category deleted"}), 200
-
-    # ---------- Customers ----------
+    # ---------- CUSTOMERS ----------
     @app.get('/api/customers')
     def get_customers():
         cs = Customer.query.all()
         return jsonify([c.to_dict() for c in cs])
 
-    @app.get('/api/customers/<int:id>')
-    def get_customer(id):
-        c = Customer.query.get(id)
-        if not c:
-            return jsonify({"error": "Customer not found"}), 404
-        return jsonify(c.to_dict())
-
-    @app.post('/api/customers')
-    def create_customer():
-        data = request.get_json() or {}
-        if not data.get("name") or not data.get("email"):
-            return jsonify({"error": "Missing required fields: name, email"}), 400
-        c = Customer(name=data["name"], email=data["email"])
-        db.session.add(c)
-        db.session.commit()
-        return jsonify(c.to_dict()), 201
-
-    @app.put('/api/customers/<int:id>')
-    def update_customer(id):
-        c = Customer.query.get(id)
-        if not c:
-            return jsonify({"error": "Customer not found"}), 404
-        data = request.get_json() or {}
-        if "name" in data: c.name = data["name"]
-        if "email" in data: c.email = data["email"]
-        db.session.commit()
-        return jsonify(c.to_dict())
-
-    @app.delete('/api/customers/<int:id>')
-    def delete_customer(id):
-        c = Customer.query.get(id)
-        if not c:
-            return jsonify({"error": "Customer not found"}), 404
-        db.session.delete(c)
-        db.session.commit()
-        return jsonify({"message": "Customer deleted"}), 200
-
-    # ---------- Orders ----------
+    # ---------- ORDERS ----------
     @app.get('/api/orders')
     def get_orders():
         os = Order.query.order_by(Order.id.desc()).all()
         return jsonify([o.to_dict() for o in os])
 
-    @app.get('/api/orders/<int:id>')
-    def get_order(id):
-        o = Order.query.get(id)
-        if not o:
-            return jsonify({"error": "Order not found"}), 404
-        return jsonify(o.to_dict())
-
-    @app.post('/api/orders')
-    def create_order():
-        data = request.get_json() or {}
-        if not data.get("product_id") or not data.get("customer_id"):
-            return jsonify({"error": "Missing required fields: product_id, customer_id"}), 400
-        qty = int(data.get("quantity", 1))
-
-        p = Product.query.get(data["product_id"])
-        c = Customer.query.get(data["customer_id"])
-        if not p: return jsonify({"error": "Product not found"}), 400
-        if not c: return jsonify({"error": "Customer not found"}), 400
-
-        o = Order(product_id=p.id, customer_id=c.id, quantity=qty)
-        db.session.add(o)
-        db.session.commit()
-        return jsonify(o.to_dict()), 201
-
-    @app.put('/api/orders/<int:id>')
-    def update_order(id):
-        o = Order.query.get(id)
-        if not o:
-            return jsonify({"error": "Order not found"}), 404
-        data = request.get_json() or {}
-        if "product_id" in data:
-            p = Product.query.get(data["product_id"])
-            if not p: return jsonify({"error": "Product not found"}), 400
-            o.product_id = p.id
-        if "customer_id" in data:
-            c = Customer.query.get(data["customer_id"])
-            if not c: return jsonify({"error": "Customer not found"}), 400
-            o.customer_id = c.id
-        if "quantity" in data:
-            o.quantity = int(data["quantity"])
-        db.session.commit()
-        return jsonify(o.to_dict())
-
-    @app.delete('/api/orders/<int:id>')
-    def delete_order(id):
-        o = Order.query.get(id)
-        if not o:
-            return jsonify({"error": "Order not found"}), 404
-        db.session.delete(o)
-        db.session.commit()
-        return jsonify({"message": "Order deleted"}), 200
-
     return app
 
 
+# ===================== ГЛАВНАЯ ЧАСТЬ (вне create_app) ===================== #
+
 app = create_app()
 
-def seed_categories():
-    with app.app_context():
-        db.create_all()
-        if Category.query.count() == 0:
-            db.session.add_all([
-                Category(name="Elektronika"),
-                Category(name="Jedzenie"),
-                Category(name="Ubrania"),
-                Category(name="Inne")
-            ])
-            db.session.commit()
-            print("✅ Default categories added!")
-        else:
-            print("ℹ️ Categories already exist.")
 
-seed_categories()
+@app.route('/')
+def home():
+    """Главная страница с описанием и кнопками"""
+    return render_template('home.html')
+
+
+@app.route('/register', methods=['GET', 'POST'])
+def register():
+    if request.method == 'POST':
+        username = request.form['username']
+        password = request.form['password']
+
+        if User.query.filter_by(username=username).first():
+            flash('Użytkownik o tej nazwie już istnieje.')
+            return redirect(url_for('register'))
+
+        new_user = User(username=username)
+        new_user.set_password(password)
+        db.session.add(new_user)
+        db.session.commit()
+        flash('Rejestracja udana! Możesz się zalogować.')
+        return redirect(url_for('login'))
+
+    return render_template('register.html')
+
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+        username = request.form['username']
+        password = request.form['password']
+
+        user = User.query.filter_by(username=username).first()
+        if user and user.check_password(password):
+            login_user(user)
+            return redirect(url_for('dashboard'))
+        else:
+            flash('Niepoprawny login lub hasło.')
+            return redirect(url_for('login'))
+
+    return render_template('login.html')
+
+
+@app.route('/logout')
+@login_required
+def logout():
+    logout_user()
+    return redirect(url_for('home'))
+
+
+@app.route('/dashboard')
+@login_required
+def dashboard():
+    return render_template('dashboard.html', user=current_user)
+
 
 if __name__ == '__main__':
     app.run(debug=True, port=5001)

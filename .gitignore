@@ -1,0 +1,62 @@
+# =====================
+# macOS system files
+# =====================
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# =====================
+# Python cache and logs
+# =====================
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.log
+*.pot
+*.mo
+
+# =====================
+# Virtual environments
+# =====================
+venv/
+env/
+ENV/
+.venv/
+.env
+.env.bak
+*.env
+
+# =====================
+# Flask / SQLAlchemy
+# =====================
+instance/
+instance/*.db
+*.sqlite3
+*.db
+
+# Alembic migrations cache
+migrations/__pycache__/
+migrations/*.pyc
+
+# =====================
+# IDE / Editor settings
+# =====================
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# =====================
+# Deployment & build
+# =====================
+dist/
+build/
+*.egg-info/
+__pypackages__/

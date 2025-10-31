@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <title>Project CRUD – Zarządzanie produktami</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <style>
+    body {
+      background: linear-gradient(180deg, #e9eef6, #f5f8fc);
+      font-family: 'Inter', sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+    }
+
+    .home-container {
+      background: white;
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+      border-radius: 20px;
+      padding: 40px 50px;
+      width: 500px;
+      text-align: center;
+      animation: fadeIn 0.6s ease-in-out;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    h1 {
+      font-size: 28px;
+      color: #1e2a44;
+      margin-bottom: 10px;
+    }
+
+    p {
+      color: #5b6b8b;
+      margin-bottom: 30px;
+      line-height: 1.5;
+    }
+
+    .buttons {
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+    }
+
+    a.btn {
+      display: inline-block;
+      padding: 12px 24px;
+      border-radius: 10px;
+      text-decoration: none;
+      font-weight: 600;
+      transition: all 0.25s ease;
+    }
+
+    a.btn-login {
+      background: #2563eb;
+      color: white;
+    }
+
+    a.btn-login:hover {
+      background: #1d4ed8;
+      transform: translateY(-2px);
+    }
+
+    a.btn-register {
+      background: #e5e7eb;
+      color: #1f2937;
+    }
+
+    a.btn-register:hover {
+      background: #d1d5db;
+      transform: translateY(-2px);
+    }
+
+    footer {
+      margin-top: 30px;
+      font-size: 13px;
+      color: #9ca3af;
+    }
+  </style>
+</head>
+<body>
+  <div class="home-container">
+    <h1>Project CRUD</h1>
+    <p>
+      Witaj w aplikacji do zarządzania produktami! <br>
+      Możesz tworzyć, edytować i usuwać produkty oraz przypisywać je do kategorii.<br><br>
+      Aby rozpocząć, zaloguj się lub utwórz nowe konto.
+    </p>
+
+    <div class="buttons">
+      <a href="{{ url_for('login') }}" class="btn btn-login">Zaloguj się</a>
+      <a href="{{ url_for('register') }}" class="btn btn-register">Zarejestruj się</a>
+    </div>
+
+    <footer>
+      © 2025 Project CRUD – Flask + SQLite
+    </footer>
+  </div>
+</body>
+</html>
