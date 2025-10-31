@@ -175,16 +175,35 @@ def home():
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
+    username_error = None
+    password_error = None
+    username = ""
+
     if request.method == 'POST':
-        username = request.form['username']
+        username = request.form['username'].strip()
         password = request.form['password']
 
+        # Проверка: имя занято
         if User.query.filter_by(username=username).first():
-            flash('Użytkownik o tej nazwie już istnieje.')
-            return redirect(url_for('register'))
+            username_error = "Użytkownik o tej nazwie już istnieje."
 
+        # Проверка: длина пароля
+        if len(password) < 6:
+            password_error = "Hasło musi mieć co najmniej 6 znaków."
+
+        # Если есть ошибки — возвращаем шаблон с ними
+        if username_error or password_error:
+            return render_template(
+                'register.html',
+                username_error=username_error,
+                password_error=password_error,
+                username=username
+            )
+
+        # Если всё ок — сохраняем
         new_user = User(username=username)
         new_user.set_password(password)
+        new_user.role = "USER"
         db.session.add(new_user)
         db.session.commit()
         flash('Rejestracja udana! Możesz się zalogować.')
@@ -193,21 +212,42 @@ def register():
     return render_template('register.html')
 
 
+
 @app.route('/login', methods=['GET', 'POST'])
 def login():
+    username_error = None
+    password_error = None
+    username = ""
+
     if request.method == 'POST':
-        username = request.form['username']
+        username = request.form['username'].strip()
         password = request.form['password']
 
         user = User.query.filter_by(username=username).first()
-        if user and user.check_password(password):
-            login_user(user)
-            return redirect(url_for('dashboard'))
-        else:
-            flash('Niepoprawny login lub hasło.')
-            return redirect(url_for('login'))
+
+        # Проверяем, существует ли пользователь
+        if not user:
+            username_error = "Nie znaleziono użytkownika o tej nazwie."
+        elif not user.check_password(password):
+            password_error = "Niepoprawne hasło."
+
+        # Если есть ошибки — отобразим их
+        if username_error or password_error:
+            return render_template(
+                'login.html',
+                username=username,
+                username_error=username_error,
+                password_error=password_error
+            )
+
+        # Всё ок — логиним
+        login_user(user)
+        return redirect(url_for('dashboard'))
 
     return render_template('login.html')
+
+
+
 
 
 @app.route('/logout')
