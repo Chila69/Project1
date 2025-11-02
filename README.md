@@ -171,3 +171,7 @@ Projekt został wdrożony online na platformie Render i jest dostępny publiczni
 4. Sprawdzić operacje CRUD (edycja, usunięcie).
 5. Endpointy API można testować w Postmanie.
 
+## Nowe funkcje uwierzytelniania 31.10
+Dodano system rejestracji, logowania i wylogowywania użytkowników z walidacją danych (m.in. minimalna długość hasła i sprawdzanie unikalności nazwy użytkownika).
+Każdy użytkownik po zalogowaniu ma dostęp do aplikacji, a na górze strony wyświetla się jego login i przycisk „Wyloguj”.
+
